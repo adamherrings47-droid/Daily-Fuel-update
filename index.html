@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oil &amp; Shipping Daily Brief</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --plane:#f9f9f7; --surface:#fcfcfb; --surface-2:#f3f3ef;
+    --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --baseline:#c3c2b7; --border:rgba(11,11,11,0.10);
+    --up:#006300; --down:#d03b3b; --accent:#2a78d6;
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4;
+    --grade-high:#d03b3b; --grade-med:#eda100; --grade-low:#898781;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --plane:#0d0d0d; --surface:#1a1a19; --surface-2:#222221;
+      --ink:#f0efec; --ink-2:#c3c2b7; --muted:#898781;
+      --grid:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,0.10);
+      --up:#0ca30c; --down:#e66767; --accent:#3987e5;
+      --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+      --grade-high:#e66767; --grade-med:#c98500; --grade-low:#898781;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --plane:#0d0d0d; --surface:#1a1a19; --surface-2:#222221;
+    --ink:#f0efec; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,0.10);
+    --up:#0ca30c; --down:#e66767; --accent:#3987e5;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+    --grade-high:#e66767; --grade-med:#c98500; --grade-low:#898781;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--plane); color:var(--ink);
+    font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1080px; margin:0 auto; padding:22px 16px 72px; }
+  a { color:inherit; }
+
+  header.top { display:flex; align-items:flex-start; justify-content:space-between;
+    gap:16px; margin-bottom:22px; }
+  h1 { font-size:25px; margin:0 0 3px; letter-spacing:-0.02em; font-weight:700; }
+  h1 .accent { color:var(--accent); }
+  .sub { color:var(--muted); font-size:12.5px; }
+  .toggle { border:1px solid var(--border); background:var(--surface);
+    color:var(--ink-2); border-radius:9px; padding:7px 11px; font-size:12.5px;
+    cursor:pointer; white-space:nowrap; }
+  .toggle:hover { border-color:var(--accent); color:var(--accent); }
+
+  section { margin-top:30px; }
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:0.09em;
+    color:var(--muted); margin:0 0 13px; font-weight:600;
+    display:flex; align-items:center; gap:9px; }
+  .badge { font-size:10px; font-weight:600; letter-spacing:0.04em;
+    color:var(--accent); border:1px solid var(--border); border-radius:999px;
+    padding:2px 8px; text-transform:none; }
+
+  .grid { display:grid; gap:13px; }
+  .kpis { grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); }
+  .cards3 { grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); }
+
+  .card { background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:15px 17px; }
+  .card .label { font-size:12.5px; color:var(--ink-2); }
+  .card .unit { font-size:11px; color:var(--muted); font-weight:400; }
+  .card .value { font-size:27px; font-weight:650; letter-spacing:-0.02em;
+    margin:3px 0 1px; }
+  .kpi .value { font-size:30px; }
+  .chg { font-size:12.5px; font-weight:600; }
+  .chg.up { color:var(--up); } .chg.down { color:var(--down); }
+  .muted { color:var(--muted); }
+
+  .panel { background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:16px 18px; }
+  .chartbox { position:relative; width:100%; }
+  .chartbox.tall { height:320px; } .chartbox.mid { height:260px; }
+  .chartbox.short { height:210px; }
+  .two { display:grid; gap:13px; grid-template-columns:1fr 1fr; }
+  @media (max-width:720px){ .two { grid-template-columns:1fr; } }
+
+  table { width:100%; border-collapse:collapse; background:var(--surface);
+    border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  th,td { text-align:left; padding:9px 13px; font-size:13.5px;
+    border-bottom:1px solid var(--grid); }
+  th { color:var(--muted); font-weight:600; font-size:11.5px;
+    text-transform:uppercase; letter-spacing:0.05em; }
+  tr:last-child td { border-bottom:none; }
+  td.r,th.r { text-align:right; font-variant-numeric:tabular-nums; }
+
+  .region { margin-bottom:15px; }
+  .region-head { font-size:11.5px; font-weight:700; letter-spacing:0.04em;
+    color:var(--accent); margin:0 0 6px; }
+
+  .note { background:var(--surface); border:1px dashed var(--border);
+    border-radius:12px; padding:12px 14px; color:var(--muted); font-size:12.5px; }
+  .err { color:var(--down); font-size:12px; }
+
+  .topnews { display:grid; gap:12px;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+  .topcard { display:block; text-decoration:none; color:var(--ink);
+    background:var(--surface); border:1px solid var(--border);
+    border-left:4px solid var(--accent); border-radius:13px; padding:14px 16px; }
+  .topcard:hover { border-color:var(--accent); }
+  .topcard.tier-high { border-left-color:var(--grade-high); }
+  .topcard.tier-medium { border-left-color:var(--grade-med); }
+  .topcard-head { display:flex; align-items:center; gap:8px; margin-bottom:6px;
+    flex-wrap:wrap; }
+  .topcard-title { font-size:15px; font-weight:600; line-height:1.35; }
+  .tags { margin-top:8px; display:flex; flex-wrap:wrap; gap:4px; }
+  .tag { font-size:10px; color:var(--muted); background:var(--surface-2);
+    border:1px solid var(--border); border-radius:6px; padding:1px 6px; }
+  .grade { font-size:10px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.04em; border-radius:6px; padding:1px 7px; color:#fff; }
+  .grade-high { background:var(--grade-high); }
+  .grade-medium { background:var(--grade-med); }
+  .grade-low { background:var(--grade-low); }
+
+  .summary p { margin:0 0 10px; } .summary p:last-child { margin-bottom:0; }
+  .summary .hl { margin:10px 0 0; padding-left:18px; }
+  .summary .hl li { margin:4px 0; font-size:13.5px; }
+
+  ul.news { list-style:none; margin:0; padding:0; }
+  ul.news li { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;
+    padding:9px 0; border-bottom:1px solid var(--grid); }
+  ul.news li:last-child { border-bottom:none; }
+  ul.news li.is-top { background:var(--surface-2); border-radius:8px;
+    padding-left:8px; padding-right:8px; }
+  ul.news a { text-decoration:none; font-size:13.5px; }
+  ul.news a:hover { color:var(--accent); text-decoration:underline; }
+  ul.news .meta { color:var(--muted); font-size:11px; flex-basis:100%; }
+
+  footer { margin-top:44px; color:var(--muted); font-size:11.5px;
+    border-top:1px solid var(--grid); padding-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Oil &amp; Shipping <span class="accent">Daily Brief</span></h1>
+      <div class="sub">Generated Wednesday, 04 November 2026  09:12 Malay Peninsula Standard Time</div>
+    </div>
+    <button class="toggle" id="themeToggle" type="button">◐ Theme</button>
+  </header>
+
+  <!-- KPI tiles -->
+  
+  
+  
+  <div class="grid kpis">
+    
+    <div class="card kpi">
+      <div class="label">Brent Crude <span class="unit">USD/bbl</span></div>
+      <div class="value">104.80</div>
+      
+        <div class="chg up">+0.03%</div>
+      
+    </div>
+    
+    <div class="card kpi">
+      <div class="label">WTI Crude <span class="unit">USD/bbl</span></div>
+      <div class="value">97.05</div>
+      
+        <div class="chg up">+0.61%</div>
+      
+    </div>
+    
+    
+    <div class="card kpi">
+      <div class="label">Baltic Dry Index</div>
+      <div class="value">2,648.00</div>
+      <div class="chg down">-2.43%</div>
+    </div>
+    
+    
+    <div class="card kpi">
+      <div class="label">Singapore VLSFO <span class="unit">USD/t</span></div>
+      <div class="value">941.50</div>
+      <div class="chg down">-62.00</div>
+    </div>
+    
+  </div>
+
+  
+  <section>
+    <h2>Top Stories</h2>
+    <div class="topnews">
+      
+      <a class="topcard tier-high" href="https://www.hellenicshippingnews.com/hormuz-oct-crossings-at-3-month-high-despite-attacks-red-sea-traffic-also-rises/" target="_blank" rel="noopener"
+         style="border-color:var(--s1)">
+        <div class="topcard-head">
+          <span class="grade grade-high">High</span>
+          <span class="muted" style="font-size:11px">Hellenic Shipping · 03 Nov 22:00</span>
+        </div>
+        <div class="topcard-title">Hormuz Oct crossings at 3-month high despite attacks, Red Sea traffic also rises</div>
+        <div class="tags"><span class="tag">hormuz</span><span class="tag">red sea</span><span class="tag">attack</span></div>
+      </a>
+      
+      <a class="topcard tier-high" href="https://www.seatrade-maritime.com/security/indian-seafarer-killed-in-hormuz-dhow-strike" target="_blank" rel="noopener"
+         style="border-color:var(--s2)">
+        <div class="topcard-head">
+          <span class="grade grade-high">High</span>
+          <span class="muted" style="font-size:11px">Seatrade Maritime · 03 Nov 17:10</span>
+        </div>
+        <div class="topcard-title">Indian seafarer killed in Hormuz Dhow strike</div>
+        <div class="tags"><span class="tag">hormuz</span><span class="tag">strike</span><span class="tag">indian</span></div>
+      </a>
+      
+      <a class="topcard tier-high" href="https://oilprice.com/Energy/Natural-Gas/Iran-War-Doubles-Egypts-LNG-Bill-as-Gas-Output-Keeps-Falling.html" target="_blank" rel="noopener"
+         style="border-color:var(--s3)">
+        <div class="topcard-head">
+          <span class="grade grade-high">High</span>
+          <span class="muted" style="font-size:11px">OilPrice · 04 Nov 00:00</span>
+        </div>
+        <div class="topcard-title">Iran War Doubles Egypt’s LNG Bill as Gas Output Keeps Falling</div>
+        <div class="tags"><span class="tag">war</span><span class="tag">output</span><span class="tag">lng</span></div>
+      </a>
+      
+    </div>
+  </section>
+  
+
+  
+  <section>
+    <h2>Market Summary <span class="badge">auto-digest</span></h2>
+    <div class="panel summary">
+      
+      <p>Geopolitics and supply risk set the tone. The day’s lead story is <span class="src" style="color:var(--s1);font-weight:600">“Hormuz Oct crossings at 3-month high despite attacks, Red Sea traffic also rises” (Hellenic Shipping)</span>; also prominent: <span class="src" style="color:var(--s2);font-weight:600">“Indian seafarer killed in Hormuz Dhow strike” (Seatrade Maritime)</span> and <span class="src" style="color:var(--s3);font-weight:600">“Iran War Doubles Egypt’s LNG Bill as Gas Output Keeps Falling” (OilPrice)</span>. Against that backdrop crude was mixed, with Brent +0.03% at 104.80 USD/bbl and WTI +0.61% at 97.05 USD/bbl. The sharpest move in the complex was Heating Oil, +3.17% to 4.56 USD/gal.</p><p>On fundamentals, US commercial crude stocks posted a draw of 1,892 kbbl in the week to 2026-10-23, with refinery utilization near 92.8% and product demand around 20,209 kb/d. Across shipping, the Baltic Dry Index eased to 2,648.00 (-2.43%), clean-tanker MR Atlantic Basket jumped +44.9% w/w to $87,225, Singapore VLSFO bunkers at $941.50/t (-62.00). With supply-risk headlines back in focus, the read-through is to watch crude's follow-through and any knock-on in tanker rates.</p>
+      <ul class="hl"><li>Brent +0.03% at 104.80 USD/bbl.</li><li>WTI +0.61% at 97.05 USD/bbl.</li><li>US crude stocks draw 1,892 kbbl (week 2026-10-23).</li><li>Baltic Dry Index 2,648.00 (-66.00 / -2.43%).</li><li>Clean tanker MR Atlantic Basket +44.9% w/w at $87,225.</li><li>Singapore VLSFO $941.50/t -62.00.</li></ul>
+    </div>
+  </section>
+  
+
+  <!-- Oil prices: indexed line chart + price tiles -->
+  <section>
+    <h2>Oil &amp; Energy Markets</h2>
+    
+    <div class="panel" style="margin-bottom:13px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Price performance · indexed to 30-day start (% change)</div>
+      <div class="chartbox tall"><canvas id="oilChart"></canvas></div>
+    </div>
+    
+    <div class="grid cards3">
+      
+      <div class="card">
+        <div class="label">Brent Crude <span class="unit">· USD/bbl</span></div>
+        <div class="value" style="font-size:22px">104.80</div>
+        
+          <div class="chg up">+0.03 (+0.03%)</div>
+        
+      </div>
+      
+      <div class="card">
+        <div class="label">WTI Crude <span class="unit">· USD/bbl</span></div>
+        <div class="value" style="font-size:22px">97.05</div>
+        
+          <div class="chg up">+0.59 (+0.61%)</div>
+        
+      </div>
+      
+      <div class="card">
+        <div class="label">Heating Oil <span class="unit">· USD/gal</span></div>
+        <div class="value" style="font-size:22px">4.56</div>
+        
+          <div class="chg up">+0.14 (+3.17%)</div>
+        
+      </div>
+      
+      <div class="card">
+        <div class="label">RBOB Gasoline <span class="unit">· USD/gal</span></div>
+        <div class="value" style="font-size:22px">2.96</div>
+        
+          <div class="chg up">+0.06 (+1.9%)</div>
+        
+      </div>
+      
+      <div class="card">
+        <div class="label">Natural Gas <span class="unit">· USD/MMBtu</span></div>
+        <div class="value" style="font-size:22px">2.90</div>
+        
+          <div class="chg up">+0.05 (+1.68%)</div>
+        
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- EIA fundamentals -->
+  <section>
+    <h2>US Petroleum Fundamentals <span class="badge">EIA · weekly</span></h2>
+    
+    
+    <div class="region">
+      <div class="region-head">Stocks</div>
+      <table>
+        <thead><tr><th>Series</th><th class="r">Latest</th><th class="r">Change</th><th class="r">Period</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td>US Crude Stocks (excl. SPR)<br><span class="unit muted">thousand bbl</span></td>
+            <td class="r">410,625</td>
+            <td class="r"><span class="chg down">-1,892</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+          <tr>
+            <td>US SPR Crude Stocks<br><span class="unit muted">thousand bbl</span></td>
+            <td class="r">282,583</td>
+            <td class="r"><span class="chg down">-100</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+          <tr>
+            <td>US Gasoline Stocks<br><span class="unit muted">thousand bbl</span></td>
+            <td class="r">209,180</td>
+            <td class="r"><span class="chg up">+3,870</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+          <tr>
+            <td>US Distillate Stocks<br><span class="unit muted">thousand bbl</span></td>
+            <td class="r">102,824</td>
+            <td class="r"><span class="chg down">-1,462</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="region">
+      <div class="region-head">Supply &amp; Refining</div>
+      <table>
+        <thead><tr><th>Series</th><th class="r">Latest</th><th class="r">Change</th><th class="r">Period</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td>US Crude Production<br><span class="unit muted">thousand bbl/day</span></td>
+            <td class="r">13,992</td>
+            <td class="r"><span class="chg up">+723</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+          <tr>
+            <td>Refinery Crude Runs<br><span class="unit muted">thousand bbl/day</span></td>
+            <td class="r">16,526</td>
+            <td class="r"><span class="chg down">-123</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+          <tr>
+            <td>Refinery Utilization<br><span class="unit muted">percent</span></td>
+            <td class="r">93%</td>
+            <td class="r"><span class="chg down">-1</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="region">
+      <div class="region-head">Trade</div>
+      <table>
+        <thead><tr><th>Series</th><th class="r">Latest</th><th class="r">Change</th><th class="r">Period</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td>US Crude Imports<br><span class="unit muted">thousand bbl/day</span></td>
+            <td class="r">6,374</td>
+            <td class="r"><span class="chg up">+616</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+          <tr>
+            <td>US Crude Exports<br><span class="unit muted">thousand bbl/day</span></td>
+            <td class="r">4,854</td>
+            <td class="r"><span class="chg up">+1,412</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="region">
+      <div class="region-head">Demand</div>
+      <table>
+        <thead><tr><th>Series</th><th class="r">Latest</th><th class="r">Change</th><th class="r">Period</th></tr></thead>
+        <tbody>
+          
+          <tr>
+            <td>Total Products Supplied (demand)<br><span class="unit muted">thousand bbl/day</span></td>
+            <td class="r">20,209</td>
+            <td class="r"><span class="chg down">-1,022</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+          <tr>
+            <td>Gasoline Supplied (demand)<br><span class="unit muted">thousand bbl/day</span></td>
+            <td class="r">8,358</td>
+            <td class="r"><span class="chg down">-624</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+          <tr>
+            <td>Distillate Supplied (demand)<br><span class="unit muted">thousand bbl/day</span></td>
+            <td class="r">4,207</td>
+            <td class="r"><span class="chg up">+475</span></td>
+            <td class="r muted">2026-10-23</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+  </section>
+
+  <!-- JODI chart + table -->
+  
+  <section>
+    <h2>Global Crude Balances <span class="badge">JODI · 2026-08</span></h2>
+    <div class="two">
+      <div class="panel">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">Crude flows by country · thousand bbl/day</div>
+        <div class="chartbox mid"><canvas id="jodiChart"></canvas></div>
+      </div>
+      <table>
+        <thead><tr><th>Country</th><th class="r">Production</th><th class="r">Imports</th><th class="r">Exports</th><th class="r">Refinery Intake</th></tr></thead>
+        <tbody>
+          
+          <tr><td>Saudi Arabia</td>
+            <td class="r">6,238</td><td class="r">68</td><td class="r">4,451</td><td class="r">2,297</td>
+          </tr>
+          
+          <tr><td>United States</td>
+            <td class="r">13,850</td><td class="r">6,709</td><td class="r">3,820</td><td class="r">17,400</td>
+          </tr>
+          
+          <tr><td>China</td>
+            <td class="r">4,353</td><td class="r">8,956</td><td class="r">61</td><td class="r">13,247</td>
+          </tr>
+          
+          <tr><td>India</td>
+            <td class="r">556</td><td class="r">4,497</td><td class="r">—</td><td class="r">5,569</td>
+          </tr>
+          
+          <tr><td>Brazil</td>
+            <td class="r">4,498</td><td class="r">243</td><td class="r">1,772</td><td class="r">—</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </div>
+    <div class="sub muted" style="margin-top:6px">Monthly, ~2-month lag. Countries that don't report to JODI (e.g. Russia) are omitted.</div>
+  </section>
+  
+
+  <!-- Dry bulk & bunker -->
+  <section>
+    <h2>Dry Bulk &amp; Bunker Fuel</h2>
+    <div class="two">
+      <div class="grid kpis" style="align-content:start">
+        <div class="card">
+          <div class="label">Baltic Dry Index</div>
+          <div class="value">2,648.00</div>
+          <div class="chg down">-66.00 (-2.43%)</div>
+          
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">Bunker fuel · VLSFO USD/tonne</div>
+        <div class="chartbox short"><canvas id="bunkerChart"></canvas></div>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- Tanker rates -->
+  <section>
+    <h2>Clean Tanker Freight Rates <span class="badge">as of Oct/28</span></h2>
+    
+    <div class="panel" style="margin-bottom:13px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">1-week change by route (%)</div>
+      <div class="chartbox mid"><canvas id="tankerChart"></canvas></div>
+    </div>
+    
+    
+    <table>
+      <thead><tr><th>Route</th><th class="r">Latest</th><th class="r">1-Day</th><th class="r">1-Week</th></tr></thead>
+      <tbody>
+        
+        <tr><td>LR1 (AG-JPN-55KT)</td><td class="r">W1036.88</td>
+          <td class="r"><span class="chg down">-3.2%</span></td>
+          <td class="r"><span class="chg down">-5.2%</span></td>
+        </tr>
+        
+        <tr><td>LR2 (AG-JPN-75KT)</td><td class="r">W1012.78</td>
+          <td class="r"><span class="chg down">-3.1%</span></td>
+          <td class="r"><span class="chg down">-4.0%</span></td>
+        </tr>
+        
+        <tr><td>MR (WCI-JPN-35KT)</td><td class="r">W443.75</td>
+          <td class="r"><span class="chg down">-0.1%</span></td>
+          <td class="r"><span class="chg down">-3.4%</span></td>
+        </tr>
+        
+        <tr><td>MR (KOR-SIN-40KT)</td><td class="r">2058K</td>
+          <td class="r"><span class="chg down">-1.1%</span></td>
+          <td class="r"><span class="chg down">-6.6%</span></td>
+        </tr>
+        
+        <tr><td>MR (SIN/AUS-35KT)</td><td class="r">W578.57</td>
+          <td class="r"><span class="chg up">+0.1%</span></td>
+          <td class="r"><span class="chg down">-2.5%</span></td>
+        </tr>
+        
+        <tr><td>MR (KOR/OZ-35KT)</td><td class="r">W670.00</td>
+          <td class="r"><span class="chg up">+0.1%</span></td>
+          <td class="r"><span class="chg down">-0.5%</span></td>
+        </tr>
+        
+        <tr><td>MR (UKC-USAC-37KT)</td><td class="r">W227.78</td>
+          <td class="r"><span class="chg down">-0.5%</span></td>
+          <td class="r"><span class="chg up">+17.8%</span></td>
+        </tr>
+        
+        <tr><td>MR (USG-UKC-38KT)</td><td class="r">W506.43</td>
+          <td class="r"><span class="chg up">+1.0%</span></td>
+          <td class="r"><span class="chg up">+34.5%</span></td>
+        </tr>
+        
+        <tr><td>MR Pacific Basket</td><td class="r">$77,062</td>
+          <td class="r"><span class="chg down">-1.1%</span></td>
+          <td class="r"><span class="chg down">-7.0%</span></td>
+        </tr>
+        
+        <tr><td>MR Atlantic Basket</td><td class="r">$87,225</td>
+          <td class="r"><span class="chg up">+0.7%</span></td>
+          <td class="r"><span class="chg up">+44.9%</span></td>
+        </tr>
+        
+      </tbody>
+    </table>
+    <div class="sub muted" style="margin-top:6px">W = Worldscale points · K = USD thousand/day · $ = TCE USD/day</div>
+    
+  </section>
+
+  <!-- Fixtures -->
+  
+  <section>
+    <h2>Latest Fixtures <span class="badge">28 Oct 2026</span></h2>
+    
+    <div class="region">
+      <div class="region-head">EX FAR EAST</div>
+      <table>
+        <thead><tr><th>Vessel</th><th>Cargo</th><th>Laycan</th><th>Route</th><th class="r">Rate</th><th>Charterer</th></tr></thead>
+        <tbody>
+          
+          <tr><td>SRITAKI(OLD)</td><td>35 ULSD</td><td>23/OCT</td><td>ONSAN/AUSTRALIA</td><td class="r">RNR</td><td>CLEARLAKE</td></tr>
+          
+          <tr><td>AMARA</td><td>35 ULSD</td><td>25/OCT</td><td>YOSU/PHILIPPINES</td><td class="r">RNR(OWN)</td><td>VIETSEA</td></tr>
+          
+          <tr><td>NCC NAJEM(CORR)</td><td>35 CPP</td><td>26/OCT</td><td>DALIAN/SINGAPORE</td><td class="r">RNR</td><td>UNIPEC</td></tr>
+          
+          <tr><td>INVICTUS(CORR)</td><td>35 UNL</td><td>27/OCT</td><td>QUANZHOU/SPORE-OPTS</td><td class="r">RNR</td><td>SINOCHEM</td></tr>
+          
+          <tr><td>TORM DAVAO(CORR)</td><td>35 UNL</td><td>01/NOV</td><td>TAIWAN/AUSTRALIA</td><td class="r">RNR</td><td>VITOL</td></tr>
+          
+          <tr><td>JAL SITARA</td><td>35 UNL</td><td>02/NOV</td><td>KOREA/PHILIPPINES</td><td class="r">RNR</td><td>CHEVRON</td></tr>
+          
+          <tr><td>SC SAPPHIRE(CORR)</td><td>35 UNL</td><td>02/NOV</td><td>KOREA/VIETNAM</td><td class="r">RNR</td><td>SEASWIFT</td></tr>
+          
+          <tr><td>TBN</td><td>35 ULSD</td><td>07/NOV</td><td>SENDAI/PHI-SIN-CHITTA</td><td class="r">RNR(OWN)</td><td>TRAFIGURA</td></tr>
+          
+          <tr><td>TBN</td><td>35 JET</td><td>08/NOV</td><td>KOREA/AUSTRALIA</td><td class="r">RNR</td><td>BP</td></tr>
+          
+          <tr><td>TBN</td><td>35 MGO</td><td>10/NOV</td><td>KOREA/SINGAPORE</td><td class="r">RNR</td><td>HYUNDAI OILBANK</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="region">
+      <div class="region-head">EX SOUTH EAST ASIA/AUSEE/PAC ISLAND</div>
+      <table>
+        <thead><tr><th>Vessel</th><th>Cargo</th><th>Laycan</th><th>Route</th><th class="r">Rate</th><th>Charterer</th></tr></thead>
+        <tbody>
+          
+          <tr><td>PACIFIC JET(FLD)</td><td>200KB UMS</td><td>29/OCT</td><td>SPORE-MALAY/TUBAN</td><td class="r">USD1.17M</td><td>PERTAMINA</td></tr>
+          
+          <tr><td>HUA WEI 8</td><td>200KB UMS</td><td>02/NOV</td><td>SPORE-MALAY/WAYAME+SEMARANG</td><td class="r">USD1.75M</td><td>PERTAMINA</td></tr>
+          
+          <tr><td>AUREA GLORY</td><td>200KB UMS</td><td>05/NOV</td><td>SPORE-MALAY/T.KABUNG</td><td class="r">USD1.4M</td><td>PERTAMINA</td></tr>
+          
+          <tr><td>LV ESTIA</td><td>60 COND</td><td>05/NOV</td><td>BINTULU/TUBAN</td><td class="r">USD2.2M</td><td>TRAFIGURA</td></tr>
+          
+          <tr><td>BAM SANDY</td><td>200KB UMS</td><td>08/NOV</td><td>SPORE-MALAY/BAUBAU</td><td class="r">USD1.4M</td><td>PERTAMINA</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="region">
+      <div class="region-head">EX INDIA/AG/RED SEA/E-S.AFRICA</div>
+      <table>
+        <thead><tr><th>Vessel</th><th>Cargo</th><th>Laycan</th><th>Route</th><th class="r">Rate</th><th>Charterer</th></tr></thead>
+        <tbody>
+          
+          <tr><td>SALSA(OLD)</td><td>35 NAP</td><td>27/OCT</td><td>VADINAR(STS)/OPTS</td><td class="r">RNR</td><td>KPC</td></tr>
+          
+          <tr><td>STRESA(FLD)</td><td>75 CPP</td><td>28/OCT</td><td>SIKKA/AUSTRALIA</td><td class="r">WS485</td><td>RELIANCE</td></tr>
+          
+          <tr><td>FPMC 33</td><td>30 CPP</td><td>28/OCT</td><td>PARADIP/CHITTAGONG</td><td class="r">USD1.4M</td><td>IOC</td></tr>
+          
+          <tr><td>MARIA MAJESTY</td><td>35 ULSD</td><td>04/NOV</td><td>SIKKA/E-S.AFRICA</td><td class="r">WS550/540</td><td>VITOL</td></tr>
+          
+          <tr><td>HAFNIA MIKALA</td><td>35 UMS</td><td>11/NOV</td><td>SIKKA/COLOMBO</td><td class="r">USD1.7M</td><td>RELIANCE</td></tr>
+          
+          <tr><td>TORM EVA(FLD)</td><td>55 NAP</td><td>28/OCT</td><td>SOHAR(STS)/JAPAN</td><td class="r">RNR</td><td>AAMCO</td></tr>
+          
+          <tr><td>ARAGON(CORR)</td><td>55 NAP</td><td>END OCT</td><td>SOHAR(STS)-R.TANURA/JAPAN</td><td class="r">WS535/1050</td><td>ARAMCO</td></tr>
+          
+          <tr><td>STRESA OOS(CORR)</td><td>75 NAP</td><td>END OCT</td><td>SOHAR(STS)/JAPAN</td><td class="r">WS450</td><td>ADMIC</td></tr>
+          
+          <tr><td>FRONT LYNX</td><td>90 JET</td><td>31/OCT</td><td>SOHAR/UKC(VIA SUEZ)</td><td class="r">USD12.0M</td><td>ADMIC</td></tr>
+          
+          <tr><td>LIAN SHAN HU(CORR)</td><td>55 NAP</td><td>03/NOV</td><td>SOHAR(STS)/JAPAN</td><td class="r">WS520</td><td>BXT</td></tr>
+          
+          <tr><td>STARLING</td><td>60 CPP</td><td>01/NOV</td><td>YANBU/AQABA</td><td class="r">USD3.7M</td><td>ARAMCO</td></tr>
+          
+          <tr><td>MODI</td><td>60 CPP</td><td>02/NOV</td><td>AG-WC INDIA/OPTS</td><td class="r">RNR</td><td>CNR</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="region">
+      <div class="region-head">EX UK-CONT/ARA/BALTIC/W.AFRICA</div>
+      <table>
+        <thead><tr><th>Vessel</th><th>Cargo</th><th>Laycan</th><th>Route</th><th class="r">Rate</th><th>Charterer</th></tr></thead>
+        <tbody>
+          
+          <tr><td>POINT LISAS(FLD)</td><td>37 UMS</td><td>31/OCT</td><td>EEMSHAVEN/TA-USG-CRBS</td><td class="r">WS215/210/210</td><td>VAROPREEM</td></tr>
+          
+          <tr><td>HENNING MAERSK</td><td>30 ULSD</td><td>31/OCT</td><td>ARA/UKC</td><td class="r">WS530</td><td>SHELL</td></tr>
+          
+          <tr><td>HYGGE</td><td>37 UNL</td><td>01/NOV</td><td>EEMSHAVEN/TA-USG-CRBS</td><td class="r">WS212.5/205/205</td><td>CSSSA</td></tr>
+          
+          <tr><td>POINT LISAS</td><td>37 UNL</td><td>06/NOV</td><td>VENTSPILS/TA-USG-CRBS</td><td class="r">WS212.5/205/205</td><td>VITOL</td></tr>
+          
+          <tr><td>BARRACUDA</td><td>60 COND</td><td>11/NOV</td><td>ESCRAVOS/KOREA</td><td class="r">USD6.175M</td><td>CHEVRON</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="region">
+      <div class="region-head">EX MED/BLACK SEA</div>
+      <table>
+        <thead><tr><th>Vessel</th><th>Cargo</th><th>Laycan</th><th>Route</th><th class="r">Rate</th><th>Charterer</th></tr></thead>
+        <tbody>
+          
+          <tr><td>SEASPRAT</td><td>30 NAP</td><td>04/NOV</td><td>MILAZZO/MED-UKC</td><td class="r">WS520/530</td><td>CLEARLAKE</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="region">
+      <div class="region-head">EX AMERICAS/CARIBS</div>
+      <table>
+        <thead><tr><th>Vessel</th><th>Cargo</th><th>Laycan</th><th>Route</th><th class="r">Rate</th><th>Charterer</th></tr></thead>
+        <tbody>
+          
+          <tr><td>ATL.INFINITY(RPLC)</td><td>38 CPP</td><td>30/OCT</td><td>USG/TA</td><td class="r">WS495</td><td>VALERO</td></tr>
+          
+          <tr><td>STI MYSTERY</td><td>38 CPP</td><td>30/OCT</td><td>USG/OPTS</td><td class="r">RNR</td><td>CNR</td></tr>
+          
+          <tr><td>BOW ELM</td><td>38 CPP</td><td>01/NOV</td><td>USG/OPTS</td><td class="r">RNR</td><td>CNR</td></tr>
+          
+          <tr><td>OMODOS</td><td>38 CPP</td><td>01/NOV</td><td>USG/CARIBS</td><td class="r">USD1.8M</td><td>ECOPETROL</td></tr>
+          
+          <tr><td>TBN</td><td>38 CPP</td><td>09/NOV</td><td>SAN FRANCISCO/PERU</td><td class="r">USD3.225M</td><td>CHEVRON</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+    
+  </section>
+  
+
+  <!-- Chokepoints -->
+  
+  <section>
+    <h2>Chokepoint Traffic <span class="badge">live AIS · 09:14 Malay Peninsula Standard Time</span></h2>
+    <div class="two">
+      
+      <div class="panel">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">Vessels in 120s sample</div>
+        <div class="chartbox short"><canvas id="aisChart"></canvas></div>
+      </div>
+      
+      <div class="grid cards3" style="align-content:start">
+        
+        <div class="card">
+          <div class="label">Strait of Hormuz</div>
+          
+            <div class="value muted" style="font-size:18px">—</div>
+            <div class="sub muted">no free-AIS coverage</div>
+          
+        </div>
+        
+        <div class="card">
+          <div class="label">Bab-el-Mandeb</div>
+          
+            <div class="value muted" style="font-size:18px">—</div>
+            <div class="sub muted">no free-AIS coverage</div>
+          
+        </div>
+        
+        <div class="card">
+          <div class="label">Suez Canal</div>
+          
+            <div class="value" style="font-size:22px">1</div>
+            <div class="sub muted">vessels</div>
+          
+        </div>
+        
+        <div class="card">
+          <div class="label">Strait of Malacca</div>
+          
+            <div class="value" style="font-size:22px">3</div>
+            <div class="sub muted">vessels · 1 tanker, 0 cargo</div>
+          
+        </div>
+        
+        <div class="card">
+          <div class="label">Panama Canal</div>
+          
+            <div class="value" style="font-size:22px">6</div>
+            <div class="sub muted">vessels · 0 tankers, 3 cargo</div>
+          
+        </div>
+        
+      </div>
+    </div>
+    <div class="sub muted" style="margin-top:6px">Unique vessels in a 120s live sample (free terrestrial AIS). "No free-AIS coverage" means no receiver data reaches that chokepoint — not that traffic is zero.</div>
+  </section>
+  
+
+  <!-- News -->
+  
+  <section>
+    <h2>News &amp; Highlights <span class="badge">30 stories · 13 feeds</span></h2>
+    <div class="panel">
+      <ul class="news">
+        
+        <li class="">
+          <span class="grade grade-low">Low</span>
+          <a href="https://maritime-executive.com/article/australia-bans-bulker-after-finding-falsified-crew-work-records" target="_blank" rel="noopener">Australia Bans Bulker After Finding Falsified Crew Work Records</a>
+          <span class="meta">Maritime Executive · 04 Nov 01:04</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://maritime-executive.com/article/residential-cruise-ship-seized-and-departs-for-singapore" target="_blank" rel="noopener">Residential Cruise Ship Seized and Departs for Singapore</a>
+          <span class="meta">Maritime Executive · 04 Nov 01:02</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://maritime-executive.com/article/fortescue-s-first-green-bulker-bunkers-ammonia-at-port-hedland" target="_blank" rel="noopener">Fortescue&#39;s First &#34;Green&#34; Bulker Bunkers Ammonia at Port Hedland</a>
+          <span class="meta">Maritime Executive · 04 Nov 00:49</span>
+        </li>
+        
+        <li class="is-top">
+          <span class="grade grade-high">High</span>
+          <a href="https://oilprice.com/Energy/Natural-Gas/Iran-War-Doubles-Egypts-LNG-Bill-as-Gas-Output-Keeps-Falling.html" target="_blank" rel="noopener">Iran War Doubles Egypt’s LNG Bill as Gas Output Keeps Falling</a>
+          <span class="meta">OilPrice · 04 Nov 00:00 · ★ top</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://oilprice.com/Energy/Crude-Oil/Global-Diesel-Crunch-Set-to-Last-Well-Into-2027.html" target="_blank" rel="noopener">Global Diesel Crunch Set to Last Well Into 2027</a>
+          <span class="meta">OilPrice · 04 Nov 00:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-low">Low</span>
+          <a href="https://maritime-executive.com/article/bulgaria-warns-of-containers-washing-ashore-from-contship-jet" target="_blank" rel="noopener">Bulgaria Warns of Containers Washing Ashore from Contship Jet</a>
+          <span class="meta">Maritime Executive · 03 Nov 23:30</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-low">Low</span>
+          <a href="https://oilprice.com/Energy/Crude-Oil/Big-Oil-Puts-Debt-Reduction-Ahead-of-New-Investments.html" target="_blank" rel="noopener">Big Oil Puts Debt Reduction Ahead of New Investments</a>
+          <span class="meta">OilPrice · 03 Nov 23:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-low">Low</span>
+          <a href="https://gcaptain.com/u-s-coast-guard-detains-msc-cruise-ship-in-miami/" target="_blank" rel="noopener">U.S. Coast Guard Detains MSC Cruise Ship in Miami</a>
+          <span class="meta">gCaptain · 03 Nov 22:39</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://www.oilandgas360.com/iea-sees-gas-market-pressure-extending-into-2027-despite-new-lng-capacity/#utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=iea-sees-gas-market-pressure-extending-into-2027-despite-new-lng-capacity" target="_blank" rel="noopener">IEA sees gas market pressure extending into 2027 despite new LNG capacity</a>
+          <span class="meta">Oil &amp; Gas 360 · 03 Nov 22:30</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://maritime-executive.com/article/warning-of-harsh-penalties-for-terminals-importing-illegal-russian-diesel" target="_blank" rel="noopener">Warning of Harsh Penalties for Terminals Importing “Illegal&#34; Russian Diesel</a>
+          <span class="meta">Maritime Executive · 03 Nov 22:12</span>
+        </li>
+        
+        <li class="is-top">
+          <span class="grade grade-high">High</span>
+          <a href="https://www.hellenicshippingnews.com/hormuz-oct-crossings-at-3-month-high-despite-attacks-red-sea-traffic-also-rises/" target="_blank" rel="noopener">Hormuz Oct crossings at 3-month high despite attacks, Red Sea traffic also rises</a>
+          <span class="meta">Hellenic Shipping · 03 Nov 22:00 · ★ top</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://www.hellenicshippingnews.com/tanker-sp-a-tale-of-two-markets/" target="_blank" rel="noopener">Tanker S&amp;P: A Tale of Two Marketsccording to Signal Ocean data, global seaborne refined  product</a>
+          <span class="meta">Hellenic Shipping · 03 Nov 22:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://www.hellenicshippingnews.com/alternative-fuels-need-infrastructure-why-gas-bunker-vessels-matter/" target="_blank" rel="noopener">Alternative fuels need infrastructure: Why gas bunker vessels matter</a>
+          <span class="meta">Hellenic Shipping · 03 Nov 22:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://www.hellenicshippingnews.com/baltic-dry-index-at-over-2-week-low-2/" target="_blank" rel="noopener">Baltic Dry Index at Over 2-Week Low</a>
+          <span class="meta">Hellenic Shipping · 03 Nov 22:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-low">Low</span>
+          <a href="https://www.hellenicshippingnews.com/panamax-vessels-lose-out-in-q3-as-shifting-grain-trade-boosts-smaller-bulk-carriers/" target="_blank" rel="noopener">Panamax vessels lose out in Q3 as shifting grain trade boosts smaller bulk carriers</a>
+          <span class="meta">Hellenic Shipping · 03 Nov 22:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-low">Low</span>
+          <a href="https://www.hellenicshippingnews.com/maritime-clusters-urged-to-turn-global-cooperation-into-measurable-action/" target="_blank" rel="noopener">Maritime clusters urged to turn global cooperation into measurable action</a>
+          <span class="meta">Hellenic Shipping · 03 Nov 22:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-low">Low</span>
+          <a href="https://oilprice.com/Latest-Energy-News/World-News/US-Crude-Oil-Inventories-Still-in-Freefall.html" target="_blank" rel="noopener">US Crude Oil Inventories Still in Freefall</a>
+          <span class="meta">OilPrice · 03 Nov 22:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-low">Low</span>
+          <a href="https://oilprice.com/Energy/Energy-General/Africa-Launches-5-Billion-Energy-Bank-as-Western-Lenders-Retreat.html" target="_blank" rel="noopener">Africa Launches $5 Billion Energy Bank as Western Lenders Retreat</a>
+          <span class="meta">OilPrice · 03 Nov 22:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-high">High</span>
+          <a href="https://maritime-executive.com/article/modular-gun-systems-might-make-hormuz-drone-damage-optional" target="_blank" rel="noopener">Modular Gun Systems Might Make Drone Strikes Optional</a>
+          <span class="meta">Maritime Executive · 03 Nov 21:45</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://oilprice.com/Energy/Natural-Gas/Why-Supplying-Europe-With-LNG-Has-a-Best-Before-Date.html" target="_blank" rel="noopener">Why Supplying Europe With LNG Has a Best-Before Date</a>
+          <span class="meta">OilPrice · 03 Nov 21:00</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-high">High</span>
+          <a href="https://www.oilandgas360.com/goldman-lifts-2027-gas-outlook-as-middle-east-lng-disruptions-persist/#utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=goldman-lifts-2027-gas-outlook-as-middle-east-lng-disruptions-persist" target="_blank" rel="noopener">Goldman lifts 2027 gas outlook as Middle East LNG disruptions persist</a>
+          <span class="meta">Oil &amp; Gas 360 · 03 Nov 20:30</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-high">High</span>
+          <a href="https://www.oilandgas360.com/aramco-posts-36-3-billion-profit-as-export-infrastructure-faces-attacks/#utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=aramco-posts-36-3-billion-profit-as-export-infrastructure-faces-attacks" target="_blank" rel="noopener">Aramco posts $36.3 billion profit as export infrastructure faces attacks</a>
+          <span class="meta">Oil &amp; Gas 360 · 03 Nov 19:30</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-low">Low</span>
+          <a href="https://www.oilandgas360.com/canadian-heavy-crude-discounts-hit-widest-levels-since-2018-as-shipping-costs-surge/#utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=canadian-heavy-crude-discounts-hit-widest-levels-since-2018-as-shipping-costs-surge" target="_blank" rel="noopener">Canadian heavy crude discounts hit widest levels since 2018 as shipping costs surge</a>
+          <span class="meta">Oil &amp; Gas 360 · 03 Nov 19:30</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://www.oilandgas360.com/oil-services-margins-squeezed-by-rising-costs-and-gulf-shipping-disruptions/#utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=oil-services-margins-squeezed-by-rising-costs-and-gulf-shipping-disruptions" target="_blank" rel="noopener">Oil services margins squeezed by rising costs and Gulf shipping disruptions</a>
+          <span class="meta">Oil &amp; Gas 360 · 03 Nov 18:30</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://gcaptain.com/longer-navy-deployments-demand-more-than-tough-sailors/" target="_blank" rel="noopener">Longer Navy Deployments Demand More Than Tough Sailors</a>
+          <span class="meta">gCaptain · 03 Nov 17:56</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-high">High</span>
+          <a href="https://gcaptain.com/hormuz-standoff-leaves-both-sides-with-economic-pain/" target="_blank" rel="noopener">Hormuz Standoff Leaves Both Sides With Economic Pain</a>
+          <span class="meta">gCaptain · 03 Nov 17:47</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://gcaptain.com/qatars-us-lng-bet-signals-a-new-energy-order/" target="_blank" rel="noopener">Qatar’s US LNG Bet Signals a New Energy Order</a>
+          <span class="meta">gCaptain · 03 Nov 17:42</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://www.oilandgas360.com/oil-falls-to-multiweek-lows-as-peace-talks-ease-supply-fears/#utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=oil-falls-to-multiweek-lows-as-peace-talks-ease-supply-fears" target="_blank" rel="noopener">Oil falls to multiweek lows as peace talks ease supply fears</a>
+          <span class="meta">Oil &amp; Gas 360 · 03 Nov 17:36</span>
+        </li>
+        
+        <li class="is-top">
+          <span class="grade grade-high">High</span>
+          <a href="https://www.seatrade-maritime.com/security/indian-seafarer-killed-in-hormuz-dhow-strike" target="_blank" rel="noopener">Indian seafarer killed in Hormuz Dhow strike</a>
+          <span class="meta">Seatrade Maritime · 03 Nov 17:10 · ★ top</span>
+        </li>
+        
+        <li class="">
+          <span class="grade grade-medium">Medium</span>
+          <a href="https://gcaptain.com/new-jersey-governor-warns-ports-against-handling-russian-diesel/" target="_blank" rel="noopener">New Jersey Governor Warns Ports Against Handling Russian Diesel</a>
+          <span class="meta">gCaptain · 03 Nov 17:03</span>
+        </li>
+        
+      </ul>
+    </div>
+  </section>
+  
+
+  <footer>
+    Oil &amp; Shipping Daily Brief · free-data edition. Prices delayed (Yahoo Finance);
+    fundamentals EIA &amp; JODI; bunker Ship &amp; Bunker; BDI investing.com; AIS aisstream.io.
+    Not investment advice.
+  </footer>
+</div>
+
+<script id="chartData" type="application/json">{"bunker": {"changes": [-62.0, -8.0, -35.0, -34.0, -35.0], "labels": ["Singapore", "Rotterdam", "Fujairah", "Houston", "LA / Long Beach"], "prices": [941.5, 755.5, 956.5, 780.0, 1041.5]}, "chokepoints": {"labels": ["Suez Canal", "Strait of Malacca", "Panama Canal"], "vessels": [1, 3, 6]}, "jodi": {"exports": [4450.7097, 3819.5161, 61.4774, null, 1771.5806], "imports": [67.7097, 6709.0, 8955.9019, 4496.651, 243.3548], "labels": ["Saudi Arabia", "United States", "China", "India", "Brazil"], "production": [6237.9032, 13850.3871, 4352.5665, 556.08, 4498.4194]}, "oil_indexed": {"labels": ["30 Sep", "01 Oct", "02 Oct", "05 Oct", "06 Oct", "07 Oct", "08 Oct", "09 Oct", "12 Oct", "13 Oct", "14 Oct", "15 Oct", "16 Oct", "19 Oct", "20 Oct", "21 Oct", "22 Oct", "23 Oct", "26 Oct", "27 Oct", "28 Oct", "29 Oct", "30 Oct", "02 Nov", "03 Nov"], "series": [{"label": "Brent Crude", "pct": [0.0, -1.18, -1.24, -3.1, -2.85, -3.22, 0.72, 1.15, 3.01, 2.09, 2.44, 2.31, 6.11, 5.81, 5.08, 5.11, 9.31, 12.74, 11.86, 10.0, 11.39, 10.96, 13.63, 1.2, 1.23]}, {"label": "WTI Crude", "pct": [0.0, 2.71, 0.76, -1.09, -1.08, -2.37, 1.18, 1.58, 3.67, 4.11, 5.16, 8.35, 12.15, 14.64, 12.57, 7.44, 10.01, 14.21, 12.54, 10.48, 13.67, 12.81, 15.15, 6.68, 7.33]}, {"label": "Heating Oil", "pct": [0.0, -6.35, -9.2, -8.31, -7.83, -6.74, -1.49, -4.42, -4.72, -0.46, -0.61, -2.24, -1.17, -0.75, -0.65, -3.91, -0.5, 0.54, -0.91, -3.67, -2.86, -4.46, -3.35, -10.79, -7.97]}, {"label": "RBOB Gasoline", "pct": [0.0, -1.02, -3.66, -5.58, -4.8, -5.93, -3.55, -4.16, -4.25, -5.47, -5.18, -7.5, -5.9, -7.18, -9.34, -9.22, -7.59, -6.57, -6.4, -8.73, -7.71, -7.36, -3.66, -15.65, -14.05]}, {"label": "Natural Gas", "pct": [0.0, -1.95, 0.3, 1.32, 2.91, 5.85, 4.69, 6.41, 4.66, 8.49, 5.68, 6.94, 2.97, 1.06, -2.08, -7.8, -7.6, -12.76, -14.01, -10.87, -6.91, -2.45, -4.23, -5.62, -4.03]}]}, "tanker": {"labels": ["LR1 (AG-JPN-55KT)", "LR2 (AG-JPN-75KT)", "MR (WCI-JPN-35KT)", "MR (KOR-SIN-40KT)", "MR (SIN/AUS-35KT)", "MR (KOR/OZ-35KT)", "MR (UKC-USAC-37KT)", "MR (USG-UKC-38KT)", "MR Pacific Basket", "MR Atlantic Basket"], "pct": [-5.2, -4.0, -3.4, -6.6, -2.5, -0.5, 17.8, 34.5, -7.0, 44.9]}}</script>
+<script>
+(function(){
+  const DATA = JSON.parse(document.getElementById('chartData').textContent);
+  const root = document.documentElement;
+  const KEY = 'oilship-theme';
+  try { const t = localStorage.getItem(KEY); if (t) root.setAttribute('data-theme', t); } catch(e){}
+
+  const cv = n => getComputedStyle(root).getPropertyValue(n).trim();
+  let charts = [];
+  const money = v => v==null ? '' : v.toLocaleString(undefined,{maximumFractionDigits:2});
+
+  function common(){
+    const ink2 = cv('--ink-2'), muted = cv('--muted'), grid = cv('--grid');
+    Chart.defaults.font.family = 'system-ui,-apple-system,"Segoe UI",sans-serif';
+    Chart.defaults.color = muted;
+    return {ink2, muted, grid};
+  }
+  function axis(c){ return {
+    grid:{ color:c.grid, drawTicks:false }, border:{ display:false },
+    ticks:{ color:c.muted, font:{size:11} }
+  };}
+
+  function buildAll(){
+    charts.forEach(c=>c.destroy()); charts=[];
+    const c = common();
+    const S = ['--s1','--s2','--s3','--s4','--s5'].map(cv);
+    const up = cv('--up'), down = cv('--down');
+    const tip = { backgroundColor:cv('--surface'), titleColor:cv('--ink'),
+      bodyColor:cv('--ink-2'), borderColor:cv('--border'), borderWidth:1,
+      padding:10, cornerRadius:8, boxPadding:4 };
+
+    // Oil indexed line
+    const oil = document.getElementById('oilChart');
+    if (oil && DATA.oil_indexed.series.length){
+      charts.push(new Chart(oil, { type:'line',
+        data:{ labels:DATA.oil_indexed.labels,
+          datasets:DATA.oil_indexed.series.map((s,i)=>({
+            label:s.label, data:s.pct, borderColor:S[i%5], backgroundColor:S[i%5],
+            borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.25, spanGaps:true })) },
+        options:{ responsive:true, maintainAspectRatio:false,
+          interaction:{ mode:'index', intersect:false },
+          plugins:{ legend:{ position:'top', labels:{ color:c.ink2, usePointStyle:true, pointStyleWidth:10, boxHeight:7, font:{size:12} } },
+            tooltip:{ ...tip, callbacks:{ label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y>=0?'+':''}${ctx.parsed.y}%` } } },
+          scales:{ x:axis(c), y:{ ...axis(c), ticks:{ color:c.muted, font:{size:11}, callback:v=>v+'%' } } } } }));
+    }
+
+    // JODI grouped bar
+    const jodi = document.getElementById('jodiChart');
+    if (jodi && DATA.jodi.labels.length){
+      charts.push(new Chart(jodi, { type:'bar',
+        data:{ labels:DATA.jodi.labels, datasets:[
+          { label:'Production', data:DATA.jodi.production, backgroundColor:S[0], borderRadius:4 },
+          { label:'Imports', data:DATA.jodi.imports, backgroundColor:S[1], borderRadius:4 },
+          { label:'Exports', data:DATA.jodi.exports, backgroundColor:S[2], borderRadius:4 } ] },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ position:'top', labels:{ color:c.ink2, usePointStyle:true, pointStyleWidth:10, boxHeight:7, font:{size:12} } },
+            tooltip:{ ...tip, callbacks:{ label:ctx=>` ${ctx.dataset.label}: ${money(ctx.parsed.y)} kb/d` } } },
+          scales:{ x:axis(c), y:{ ...axis(c), ticks:{ color:c.muted, font:{size:11}, callback:v=>money(v) } } } } }));
+    }
+
+    // Bunker bar (single series)
+    const bk = document.getElementById('bunkerChart');
+    if (bk && DATA.bunker.labels.length){
+      charts.push(new Chart(bk, { type:'bar',
+        data:{ labels:DATA.bunker.labels, datasets:[{ data:DATA.bunker.prices,
+          backgroundColor:S[0], borderRadius:4, maxBarThickness:46 }] },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false },
+            tooltip:{ ...tip, callbacks:{ label:ctx=>` $${money(ctx.parsed.y)}/t` } } },
+          scales:{ x:axis(c), y:{ ...axis(c), ticks:{ color:c.muted, font:{size:11}, callback:v=>'$'+money(v) } } } } }));
+    }
+
+    // Tanker diverging horizontal bar
+    const tk = document.getElementById('tankerChart');
+    if (tk && DATA.tanker.labels.length){
+      charts.push(new Chart(tk, { type:'bar',
+        data:{ labels:DATA.tanker.labels, datasets:[{ data:DATA.tanker.pct,
+          backgroundColor:DATA.tanker.pct.map(v=>v>=0?up:down), borderRadius:4 }] },
+        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false },
+            tooltip:{ ...tip, callbacks:{ label:ctx=>` ${ctx.parsed.x>=0?'+':''}${ctx.parsed.x}% w/w` } } },
+          scales:{ x:{ ...axis(c), ticks:{ color:c.muted, font:{size:11}, callback:v=>v+'%' } }, y:{ ...axis(c), ticks:{ color:c.muted, font:{size:10} } } } } }));
+    }
+
+    // AIS chokepoints bar
+    const ais = document.getElementById('aisChart');
+    if (ais && DATA.chokepoints.labels.length){
+      charts.push(new Chart(ais, { type:'bar',
+        data:{ labels:DATA.chokepoints.labels, datasets:[{ data:DATA.chokepoints.vessels,
+          backgroundColor:S[2], borderRadius:4, maxBarThickness:46 }] },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false }, tooltip:{ ...tip, callbacks:{ label:ctx=>` ${ctx.parsed.y} vessels` } } },
+          scales:{ x:axis(c), y:{ ...axis(c), beginAtZero:true, ticks:{ color:c.muted, font:{size:11}, precision:0 } } } } }));
+    }
+  }
+
+  common(); buildAll();
+
+  document.getElementById('themeToggle').addEventListener('click', function(){
+    const dark = root.getAttribute('data-theme') === 'dark'
+      || (!root.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+    const next = dark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch(e){}
+    buildAll();
+  });
+})();
+</script>
+</body>
+</html>
